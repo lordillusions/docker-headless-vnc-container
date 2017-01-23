@@ -1,5 +1,5 @@
 # This Dockerfile is used to build an headles vnc image based on Ubuntu 
-FROM ubuntu:16.04 
+FROM ubuntu:14.04 
 
 MAINTAINER Wellington Chaves "lordillusions@gmail.com" 
 ENV REFRESHED_AT 2017-01-23 
@@ -16,40 +16,34 @@ ENV DISPLAY :1
 ENV VNC_PORT 5901 
 EXPOSE $VNC_PORT
 
-ENV HOME /headless 
-WORKDIR $HOME
+#ENV HOME /headless 
+#WORKDIR $HOME
 
 ### Envrionment config 
 ENV DEBIAN_FRONTEND noninteractive 
-ENV NO_VNC_HOME /$HOME/noVNC 
 ENV VNC_COL_DEPTH 24 
 ENV VNC_RESOLUTION 1280x1024 
 ENV VNC_PW vncpassword 
 
 ### Add all install scripts for further steps 
-ENV INST_SCRIPTS $HOME/install 
-ADD ./src/common/install/ $INST_SCRIPTS/
-ADD ./src/ubuntu/install/ $INST_SCRIPTS/
-RUN find $INST_SCRIPTS -name '*.sh' -exec chmod a+x {} +
+#ENV INST_SCRIPTS $HOME/install 
+#ADD ./src/common/install/ $INST_SCRIPTS/
+#ADD ./src/ubuntu/install/ $INST_SCRIPTS/
+#RUN find $INST_SCRIPTS -name '*.sh' -exec chmod a+x {} +
 
 ### Install some common tools 
-RUN $INST_SCRIPTS/tools.sh
+#RUN $INST_SCRIPTS/tools.sh
 
 ### Install xvnc-server
-RUN $INST_SCRIPTS/tigervnc.sh
+#RUN $INST_SCRIPTS/tigervnc.sh
 
-### Install firfox and chrome browser 
-RUN $INST_SCRIPTS/firefox.sh
-#RUN $INST_SCRIPTS/chrome.sh
+############### xvnc / xfce installation 
+RUN apt-get update && apt-get upgrade -y && apt-get install -y supervisor vim xfce4 vnc4server wget && rm -rf /var/lib/apt/
 
-### Install xfce UI 
-RUN $INST_SCRIPTS/xfce_ui.sh
-ADD ./src/common/xfce/ $HOME/
-### configure startup 
-ADD ./src/common/scripts $HOME/scripts
-RUN $INST_SCRIPTS/set_user_permission.sh
-USER 1984 ENTRYPOINT ["scripts/vnc_startup.sh"]
-CMD ["--tail-log"]
+### Install firfox
+RUN apt-get update \
+    && apt-get install -y firefox \
+    && rm -rf /var/lib/apt/
 
 # Inspired by monokrome/wine 
 ENV WINE_MONO_VERSION 0.0.8 
@@ -68,6 +62,7 @@ RUN dpkg --add-architecture i386 \
 				wine \
 				wine32 \
 		&& rm -rf /var/lib/apt/lists/*
+
 # Use the latest version of winetricks 
 RUN curl -SL 'https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks' -o /usr/local/bin/winetricks \
 		&& chmod +x /usr/local/bin/winetricks
@@ -79,3 +74,12 @@ RUN mkdir -p /usr/share/wine/mono \
 
 # Wine really doesn't like to be run as root, so let's use a non-root user USER xclient ENV HOME /home/xclient ENV WINEPREFIX /home/xclient/.wine ENV WINEARCH win32 # Use xclient's home dir as working dir WORKDIR /home/xclient
 RUN echo "alias winegui='wine explorer /desktop=DockerDesktop,1024x768'" > ~/.bash_aliases 
+
+ADD .vnc /root/.vnc
+ADD .config /root/.config
+ADD Desktop /root/Desktop
+ADD scripts /root/scripts
+RUN chmod +x /root/.vnc/xstartup /etc/X11/xinit/xinitrc /root/scripts/*.sh /root/Desktop/*.desktop
+ENTRYPOINT ["/root/scripts/vnc_startup.sh"]
+CMD ["--tail-log"]
+
