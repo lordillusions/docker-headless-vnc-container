@@ -1,12 +1,13 @@
 # This Dockerfile is used to build an headles vnc image based on Ubuntu 
 FROM ubuntu:16.04 
 
-MAINTAINER Tobias Schneck "tobias.schneck@consol.de" 
+MAINTAINER Tobias Schneck "lordillusions@gmail.com" 
 ENV REFRESHED_AT 2017-01-04 
 
 LABEL io.k8s.description="Headless VNC Container with Xfce window manager, firefox and chromium" \
       io.k8s.display-name="Headless VNC Container based on Ubuntu" \
-      io.openshift.expose-services="6901:http,5901:xvnc" \
+      io.openshift.expose-services="5901:xvnc" \
+      #io.openshift.expose-services="6901:http,5901:xvnc" \
       io.openshift.tags="vnc, ubuntu, xfce" \
       io.openshift.non-scalable=true
 
@@ -16,7 +17,8 @@ LABEL io.k8s.description="Headless VNC Container with Xfce window manager, firef
 ENV DISPLAY :1 
 ENV VNC_PORT 5901 
 #ENV NO_VNC_PORT 6901 
-EXPOSE $VNC_PORT $NO_VNC_PORT 
+#EXPOSE $VNC_PORT $NO_VNC_PORT 
+EXPOSE $VNC_PORT
 
 ENV HOME /headless 
 WORKDIR $HOME
