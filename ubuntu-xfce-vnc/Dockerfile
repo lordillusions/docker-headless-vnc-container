@@ -1,23 +1,19 @@
 # This Dockerfile is used to build an headles vnc image based on Ubuntu 
 FROM ubuntu:16.04 
 
-MAINTAINER Tobias Schneck "lordillusions@gmail.com" 
-ENV REFRESHED_AT 2017-01-04 
+MAINTAINER Wellington Chaves "lordillusions@gmail.com" 
+ENV REFRESHED_AT 2017-01-23 
 
 LABEL io.k8s.description="Headless VNC Container with Xfce window manager, firefox and chromium" \
       io.k8s.display-name="Headless VNC Container based on Ubuntu" \
       io.openshift.expose-services="5901:xvnc" \
-      #io.openshift.expose-services="6901:http,5901:xvnc" \
       io.openshift.tags="vnc, ubuntu, xfce" \
       io.openshift.non-scalable=true
 
 ## Connection ports for controlling the UI: 
 # VNC port:5901 
-# noVNC webport, connect via http://IP:6901/vnc_auto.html?password=vncpassword 
 ENV DISPLAY :1 
 ENV VNC_PORT 5901 
-#ENV NO_VNC_PORT 6901 
-#EXPOSE $VNC_PORT $NO_VNC_PORT 
 EXPOSE $VNC_PORT
 
 ENV HOME /headless 
@@ -39,15 +35,15 @@ RUN find $INST_SCRIPTS -name '*.sh' -exec chmod a+x {} +
 ### Install some common tools 
 RUN $INST_SCRIPTS/tools.sh
 
-### Install xvnc-server & noVNC - HTML5 based VNC viewer 
+### Install xvnc-server
 RUN $INST_SCRIPTS/tigervnc.sh
-#RUN $INST_SCRIPTS/no_vnc.sh
 
 ### Install firfox and chrome browser 
 RUN $INST_SCRIPTS/firefox.sh
 #RUN $INST_SCRIPTS/chrome.sh
 
-### Install xfce UI RUN $INST_SCRIPTS/xfce_ui.sh
+### Install xfce UI 
+RUN $INST_SCRIPTS/xfce_ui.sh
 ADD ./src/common/xfce/ $HOME/
 ### configure startup 
 ADD ./src/common/scripts $HOME/scripts
